@@ -1,0 +1,12 @@
+.cont{
+  
+    background-image:url(../assest/onlineexambackground.png);
+    /* background-image:url(../assest/bgimageforhomedash.png); */
+    width: 10vw;
+    height: 100vh;
+    background-repeat: no-repeat;
+  background-position: center ;
+
+  background-size: cover;
+  position: relative;
+}
