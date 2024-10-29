@@ -1,0 +1,12 @@
+.list-group a:hover,
+.list-group button:hover{
+    background-color: #052659;
+    color:white;
+    cursor: pointer;
+}
+
+.sidelink{
+    background-color:#7da0ca;
+    color:white;
+    cursor: pointer;
+}

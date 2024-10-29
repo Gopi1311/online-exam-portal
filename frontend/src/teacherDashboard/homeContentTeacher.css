@@ -1,0 +1,13 @@
+.testcard:hover{
+    color: rgb(0, 73, 128);
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.notest{
+    background-color:#7da0ca;
+}
+
+.plus{
+    color:rgb(11, 11, 11);
+}
