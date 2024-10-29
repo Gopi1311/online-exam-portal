@@ -498,13 +498,15 @@ app.post('/marksupdate/:id',(req,res)=>{
     const user_id=req.session.studentid;
     const test_id=req.params.id;
     const mark=req.body.marks;
+    const cheatingCount=req.body. cheatingCount;
     const date=new Date();
-    const sql = 'INSERT INTO mark (`user_id`, `test_id`, `mark`, `date`) VALUES (?, ?, ?, ?)';
+    const sql = 'INSERT INTO mark (`user_id`, `test_id`, `mark`, `date`,`cheatingCount`) VALUES (?, ?, ?, ?,?)';
     const values=[
         user_id,
         test_id,
         mark,
-        date
+        date,
+        cheatingCount
     ]
     
     db.query(sql,values,(err,data)=>{
@@ -554,7 +556,7 @@ app.get('/studentmarks', (req, res) => {
     WHERE 
         m.user_id = ?
          ORDER BY 
-            m.date DESC;;`;
+            m.date DESC;`;
 
 
    
