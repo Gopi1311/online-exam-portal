@@ -8,7 +8,7 @@ const FacialRecognition = () => {
   const [modelsLoaded, setModelsLoaded] = useState(false);
 
   useEffect(() => {
-    // Load FaceAPI models
+    
     const loadModels = async () => {
         const MODEL_URL = './models';
         //'https://github.com/justadudewhohacks/face-api.js/tree/master/weights/';
