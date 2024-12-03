@@ -2,7 +2,7 @@ import React, { useState} from "react";
 import Loginvalidation from "./loginValidation";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
-import NavBar from "../homeDashBoard/NavBar";
+
 
 function Login() {
   const [values, setValues] = useState({
@@ -33,17 +33,18 @@ function Login() {
          else if (res.data.message.toLowerCase() === "teacher") {
             navigate("/teacherhomedash");
           }
-          else {
-            alert("E-mail or Password is incorrect");
-          }
+          
         })
         .catch((err) => console.log(err));
+    }
+    else {
+      alert("E-mail or Password is incorrect");
     }
   };
 
   return (
     <div>
-      {/* <NavBar/> */}
+     
        <div className="d-flex justify-content-center align-items-center  vh-100" style={{backgroundColor:'#7da0ca'}}> 
    
       <div className="bg-white p-3 rounded w-25">
@@ -58,12 +59,14 @@ function Login() {
               placeholder="Enter Email"
               className="form-control rounded-0"
               name="email"
+              id="email"
+             
               onChange={handleInput}
             />
             {error.email && <span className="text-danger">{error.email}</span>}
           </div>
           <div className="mb-3 ">
-            <label htmlFor="pass">
+            <label htmlFor="password">
               <strong>Password</strong>
             </label>
             <input
@@ -71,6 +74,8 @@ function Login() {
               placeholder="Enter Password"
               className="form-control rounded-0"
               name="password"
+              id="password"
+              
               onChange={handleInput}
             />
             {error.password && (
