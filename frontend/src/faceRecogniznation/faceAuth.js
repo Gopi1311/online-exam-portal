@@ -1,148 +1,126 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState } from "react";
 import Webcam from "react-webcam";
-import * as faceapi from 'face-api.js';
-import axios from 'axios';
+import * as faceapi from "face-api.js";
+import axios from "axios";
+import { Link, useNavigate, useParams } from "react-router-dom";
 
 const FacialRecognition = () => {
   const webcamRef = useRef(null);
   const [modelsLoaded, setModelsLoaded] = useState(false);
-
+  const [imageSrc, setImageSrc] = useState(null);
+  const {id}=useParams();
+  const navigate=useNavigate();
+  // Load FaceAPI models
   useEffect(() => {
-    // Load FaceAPI models
     const loadModels = async () => {
-        const MODEL_URL = './models';
-        //'https://github.com/justadudewhohacks/face-api.js/tree/master/weights/';
-        //'https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/weights/';
-       
-      await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
-      await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
-      await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
-      setModelsLoaded(true);
+      const MODEL_URL = process.env.PUBLIC_URL + "/models";
+      try {
+        await Promise.all([
+          faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+          faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
+          faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL),
+        ]);
+        setModelsLoaded(true);
+      } catch (error) {
+        console.error("Error loading models:", error);
+      }
     };
     loadModels();
   }, []);
 
-  const [imageSrc,setImageSrc] = useState(null);
-  const [vryimg,setVryimg] = useState(null);
-
+  // Fetch the profile image from the backend
   useEffect(() => {
-
-        //for get image
-         axios.get(`http://localhost:8081/profileStudent/image`,{responseType:'blob'})
-        .then(imgres=>{
-        const imageURL=URL.createObjectURL(imgres.data);
+    axios
+      .get(`http://localhost:8081/profileStudent/image`, { responseType: "blob" })
+      .then((response) => {
+        const imageURL = URL.createObjectURL(response.data);
         setImageSrc(imageURL);
       })
-      .catch((err) => {
-        console.log(err);
-
-      });
-
-      axios.get(`http://localhost:8081/vryimg`,{responseType:'blob'})
-      .then(imgres=>{
-      const imageURL=URL.createObjectURL(imgres.data);
-      setVryimg(imageURL);
-    })
-    .catch((err) => {
-      console.log(err);
-    });
+      .catch((err) => console.error("Error fetching image:", err));
   }, []);
 
   const capture = async () => {
-    console.log('capturing');
-    if (modelsLoaded && webcamRef.current) {
-      const capturedImg = webcamRef.current.getScreenshot();
-     const capturedImgImgElement = document.createElement('img');
-     capturedImgImgElement.src = vryimg;
-    //  imgElement.src = img;
-   const imgElement = document.createElement('img');
-   imgElement.src = imageSrc; 
-
-imgElement.onload = async () => {
-    try {
-        const detections0 = await faceapi.detectSingleFace(capturedImgImgElement, new faceapi.TinyFaceDetectorOptions())
-                                      .withFaceLandmarks().withFaceDescriptor();
-      const detections = await faceapi.detectSingleFace(imgElement, new faceapi.TinyFaceDetectorOptions())
-                                      .withFaceLandmarks().withFaceDescriptor();
-      
-      console.log('detections', detections0);
-      
-      if (detections0) {
-        console.log('Face detected:', detections);
-
-        const distance = faceapi.euclideanDistance(detections0.descriptor, detections.descriptor);
-
-            console.log(distance)
-
-            if (distance < 0.6) {  // Threshold value
-                console.log("true");
-            } else {
-                console.log('Face not recognized' );
-            }
-
-        // Send the descriptor to the backend for verification
-      //  verifyFace(detections.descriptor);
-      } else {
-        console.log('Face not detected...');
-        alert('Face not detected, please try again...');
-      }
-    } catch (error) {
-      console.error('Error detecting face:', error);
+    if (!modelsLoaded || !webcamRef.current) {
+      console.log("Models not loaded or webcam unavailable");
+      return;
     }
-  };
 
-
-
-
-
-    //   const detections = await faceapi.detectSingleFace(imgElement, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptor();
-    //   console.log('detections', detections);
-
-    //   if (detections) {
-    //     console.log('Face detected:', detections);
-    //     // Send the descriptor to the backend for verification
-    //     verifyFace(detections.descriptor);
-    //   } else {
-    //     console.log('Face not detected...');
-    //     //verifyFace(img);
-    //     alert('Face not detected, please try again...')
-    //   }
-    }else{
-        console.log("not cap");
+    const capturedImg = webcamRef.current.getScreenshot();
+    if (!capturedImg) {
+      console.log("No image captured");
+      return;
     }
-  };
 
-  const verifyFace = async (descriptor) => {
     try {
-        console.log('Verifying face:', JSON.stringify({ descriptor }));
-      
-        const response = await axios.post('http://localhost:8081/api/verify-face', {
-            descriptor // Send your descriptor directly
-          }, {
-            //headers: { 'Content-Type': 'application/json' } // Specify headers in the third argument
-          });
+      // Create DOM elements for face-api processing
+      const capturedImgElement = document.createElement("img");
+      capturedImgElement.src = capturedImg;
+
+      const profileImgElement = document.createElement("img");
+      profileImgElement.src = imageSrc;
+
+      // Wait for images to load before detection
+      await Promise.all([
+        new Promise((resolve) => (capturedImgElement.onload = resolve)),
+        new Promise((resolve) => (profileImgElement.onload = resolve)),
+      ]);
+
+      // Detect and compare faces
+      const capturedFace = await faceapi
+        .detectSingleFace(capturedImgElement, new faceapi.TinyFaceDetectorOptions())
+        .withFaceLandmarks()
+        .withFaceDescriptor();
+
+      const profileFace = await faceapi
+        .detectSingleFace(profileImgElement, new faceapi.TinyFaceDetectorOptions())
+        .withFaceLandmarks()
+        .withFaceDescriptor();
+
+      if (capturedFace && profileFace) {
+        const distance = faceapi.euclideanDistance(capturedFace.descriptor, profileFace.descriptor);
+        console.log("Face distance:", distance);
+        if (distance < 0.6) {
+          alert("Face recognized!");
+          navigate(`/examinstruction/${id}`);
           
-      const result = await response.json();
-      if (result.success) {
-        console.log("success")
-        alert('Face verified successfully');
+        } else {
+          alert("Face not recognized!");
+        }
       } else {
-        alert('Verification failed');
+        alert("Face not detected in one or both images.");
       }
     } catch (error) {
-      console.error('Error during verification:', error);
+      console.error("Error during face detection:", error);
     }
   };
 
   return (
-    <div>
-      <h2>Facial Recognition Login</h2>
-      <Webcam
-        ref={webcamRef}
-        screenshotFormat="image/jpeg"
-      />
-      <button className='btn btn-success' onClick={capture}>Capture Face</button>
+    <div className="container d-flex justify-content-center align-items-center vh-100">
+    <div className="card shadow-lg p-4" style={{ width: "100%", maxWidth: "500px" }}>
+      <h2 className="text-center mb-4">Facial Recognition Login</h2>
+      {modelsLoaded ? (
+        <div className="webcam-container mb-4">
+          <Webcam ref={webcamRef} screenshotFormat="image/jpeg" className="w-100 rounded" />
+        </div>
+      ) : (
+        <div className="d-flex justify-content-center mb-4">
+          <div className="spinner-border text-primary" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </div>
+        </div>
+      )}
+      <div className="text-center">
+      <Link to={'/studenthomedash'}className="btn btn-danger me-2" >
+          Back
+        </Link>
+        <button className="btn btn-success" onClick={capture}>
+          Capture Face
+        </button>
+        
+      </div>
     </div>
+  </div>
+  
   );
 };
 

@@ -9,6 +9,7 @@ const multer =require('multer');
 const path= require('path');
 const faceapi=require('face-api.js');
 const { createCanvas, Image } = require('canvas'); 
+const fs = require('fs');
 
 
 const app = express();
@@ -50,6 +51,7 @@ app.use('/images', express.static(path.join(__dirname, 'public', 'images')));
 const storage=multer.memoryStorage();
 const upload = multer({ storage: storage});
 
+//SIGNUP ROUTE
 app.post('/Signup',upload.single('image'), (req, res) => {
     console.log(req.body);  
 
@@ -69,71 +71,7 @@ app.post('/Signup',upload.single('image'), (req, res) => {
 });
  
 
-
-// FACE RECOGNITION
-app.post('/api/verify-face', async (req, res) => {
-    const { descriptor } = req.body;
-    const studentId = req.session.studentid;
-
-    //console.log("Verifying: ", req.body);
-
-    // Fetch the user's image from the database
-    const sql = "SELECT image FROM userauth WHERE id = ?";
-    db.query(sql, [studentId], async (err, result) => {
-        if (err) {
-            console.error("Error fetching image:", err);
-            return res.status(500).json({ success: false, message: 'Error fetching image' });
-        }
-
-        if (result.length === 0 || !result[0].image) {
-            return res.status(404).json({ success: false, message: 'Image not found' });
-        }
-
-        console.log("result: ", result)
-
-        // Convert the BLOB to a base64 image
-        const base64Image = Buffer.from(result[0].image).toString('base64');
-        const img = new Image();
-        img.src = `data:image/jpeg;base64,${base64Image}`;
-
-       
-       
-
-        // Wait for the image to load
-        img.onload = async () => {
-            const canvas = createCanvas(img.width, img.height);
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0);
-            // Get the face descriptor for the retrieved image
-            const faceLandmarks = await faceapi.detectSingleFace(canvas).withFaceLandmarks().withFaceDescriptor();
-
-            if (!faceLandmarks) {
-                return res.json({ success: false, message: 'No face detected in the image' });
-            }
-
-            // Calculate the distance between the stored descriptor and the newly detected descriptor
-            const distance = faceapi.euclideanDistance(faceLandmarks.descriptor, descriptor);
-
-            console.log(distance)
-
-            if (distance < 0.6) {  // Threshold value
-                res.json({ success: true, userId: studentId });
-            } else {
-                res.json({ success: false, message: 'Face not recognized' });
-            }
-        };
-
-        img.onerror = (error) => {
-            console.error("Error loading image:", error);
-            return res.status(500).json({ success: false, message: 'Error loading image for face verification' });
-        };
-       // img.src = img.src; 
-        console.log('end...........')
-    });
-});
-
-
-
+//LOGIN ROUTE
 app.post('/login', (req, res)  => {
     const sql = "SELECT * FROM userauth WHERE `email` = ? AND `password` = ?";
     db.query(sql, [req.body.email, req.body.password], (err, data) => {
@@ -194,6 +132,7 @@ app.get('/logout', (req, res) => {
     });
 });
 
+//PROFILE DETAILS FOR TEACHER
 app.get('/profile',(req,res)=>{
     const teacherid=req.session.teacherid;
  
@@ -212,7 +151,7 @@ app.get('/profile',(req,res)=>{
     })
 })
 
-
+//SAVE TEST BY TEACHER
 app.post('/savetest',(req,res)=>{
     const {testname,questions}=req.body;
     const teacherid=req.session.teacherid;
@@ -270,6 +209,7 @@ app.get('/testview',(req,res)=>{
     })
 })
 
+//VIEW TEST BY TEACHER
 app.get('/getQuestions/:id',(req,res)=>{
     const testId=req.params.id;
     
@@ -288,6 +228,7 @@ app.get('/getQuestions/:id',(req,res)=>{
     })
 })
 
+// UPDATE TEST BY TEACER 
 app.put('/updatetest/:id',(req,res)=>{
     const {testname,questions,teacherid,test_id}=req.body;
     const ids=req.params.id;
@@ -423,7 +364,7 @@ app.get('/profileStudent',(req,res)=>{
     })
 })
 
-//STUDENT IMAGE GET
+//STUDENT IMAGE GET FOR FACEAUTHENTICATION
 app.get('/profileStudent/image',(req,res)=>{
     const studentid=req.session.studentid;
     const sql="SELECT image FROM userauth WHERE id=?"
@@ -444,26 +385,7 @@ app.get('/profileStudent/image',(req,res)=>{
     })
 })
 
-//******************************** */
-app.get('/vryimg',(req,res)=>{
-    const studentid=10
-    const sql="SELECT image FROM userauth WHERE id=?"
-   
-    db.query(sql,[studentid],(err,data)=>{
-       
-        if(err){
-          return  res.json({error:"error" });
-        
-        }
-        if(data.length===0 ||!data[0].image){
-            return res.status(404).send('Image not found');
-        }
-       
-        res.writeHead(200, { 'Content-Type': 'image/jpeg' });
-        res.end(data[0].image);
-      
-    })
-})
+//******************************** *//
 
 // STUDENT VIEW ALL TEST
 app.get('/studenttestview',(req,res)=>{
@@ -498,13 +420,15 @@ app.post('/marksupdate/:id',(req,res)=>{
     const user_id=req.session.studentid;
     const test_id=req.params.id;
     const mark=req.body.marks;
+    const cheatingCount=req.body. cheatingCount;
     const date=new Date();
-    const sql = 'INSERT INTO mark (`user_id`, `test_id`, `mark`, `date`) VALUES (?, ?, ?, ?)';
+    const sql = 'INSERT INTO mark (`user_id`, `test_id`, `mark`, `date`,`cheatingCount`) VALUES (?, ?, ?, ?,?)';
     const values=[
         user_id,
         test_id,
         mark,
-        date
+        date,
+        cheatingCount
     ]
     
     db.query(sql,values,(err,data)=>{
@@ -536,7 +460,7 @@ app.get('/statusReportStudent/:id',(req, res)=>{
   })
 })
 
-
+//SHOW MARKS TO STUDENT
 
 app.get('/studentmarks', (req, res) => {
     const studentId = req.session.studentid;
@@ -554,7 +478,7 @@ app.get('/studentmarks', (req, res) => {
     WHERE 
         m.user_id = ?
          ORDER BY 
-            m.date DESC;;`;
+            m.date DESC;`;
 
 
    

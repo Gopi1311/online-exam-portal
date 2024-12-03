@@ -61,6 +61,7 @@ const ReportTeacher = () => {
             <th scope="col">Test Name</th>
             <th scope="col">Marks</th>
             <th scope="col">Student Level</th>
+            <th scope="col">cheatingCount</th>
             <th scope="col">Date</th>
            
           </tr>
@@ -76,6 +77,7 @@ const ReportTeacher = () => {
                 <td>{data.testname}</td>
                 <td>{data.mark}</td>
                 <td className='fw-bold' style={{color: getPercentageColor(percentage)}}>{percentage}% - {getSkillMessage(percentage)}</td>
+                <td>{data.cheatingCount}</td>
                 <td>{new Date(data.date).toLocaleDateString()}</td> 
                 
               </tr>

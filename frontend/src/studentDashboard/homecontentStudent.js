@@ -33,7 +33,7 @@ const handleSearch =(e)=>{
 }
 
   return (
-    <div className='w-100 '>
+    <div className='w-100 'style={{minHeight: '100vh',width: '100%', height: '100vh',overflow: 'hidden'}}>
       <TopNavStudent Toggle={Toggle}/>
       <div className="d-flex  vh-100  justify-content-center align-items-start  ">
     <div className="container-fluid   p-4 shadow-sm "style={{backgroundColor:'#7da0ca'}} > 
@@ -65,8 +65,8 @@ const handleSearch =(e)=>{
                 <td>{test.testname}</td>
                 <td>
                 <Link
-                   to={`/examinstruction/${test.id}`}
-                //   to='/faceauth'
+                  
+                  to={`/faceauth/${test.id}`}
                     className="btn btn-primary btn-sm me-2"
                   >
                    Take Test

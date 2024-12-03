@@ -45,7 +45,7 @@ function App() {
             <Route path='/taketest/:id' element={<TakeTest/>}/>
             <Route path='/examinstruction/:id' element={<ExamInstruction/>}/>
             <Route path='/statusstudent/:id' element={<StatusStudent/>}/>
-            <Route path='/faceauth' element={<FacialRecognition/>}/>
+            <Route path='/faceauth/:id' element={<FacialRecognition/>}/>
         </Routes>
      </BrowserRouter>
   
