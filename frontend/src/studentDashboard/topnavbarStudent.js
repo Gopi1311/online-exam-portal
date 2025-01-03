@@ -7,7 +7,7 @@ const TopNavStudent = ({ Toggle }) => {
   const [name, setName] = useState();
   useEffect(() => {
     axios
-      .get("http://localhost:8081/teachernametag")
+      .get("http://localhost:8081/user/nametag")
       .then((res) => {
         setName(res.data[0].name);
       })

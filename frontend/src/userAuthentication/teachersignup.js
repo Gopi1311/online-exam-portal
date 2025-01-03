@@ -7,10 +7,10 @@ function TeacherSignup() {
   const [values, setValues] = useState({
     name: "",
     empid: "",
-    institute:"",
+    institute: "",
     email: "",
     password: "",
-    role:"teacher"
+    role: "teacher",
   });
 
   const [error, setError] = useState({});
@@ -21,8 +21,13 @@ function TeacherSignup() {
   const handleSubmit = (event) => {
     event.preventDefault();
     setError(Signupvalidation(values));
-    if (error.name === "" && error.email === "" && error.password === "" && error.institute === "") {
-      Axios.post("http://localhost:8081/Signup", values)
+    if (
+      error.name === "" &&
+      error.email === "" &&
+      error.password === "" &&
+      error.institute === ""
+    ) {
+      Axios.post("http://localhost:8081/auth/Signup", values)
         .then((res) => {
           navigate("/login");
         })
@@ -30,7 +35,10 @@ function TeacherSignup() {
     }
   };
   return (
-    <div className="d-flex justify-content-center align-items-center  vh-100"style={{backgroundColor:'#7da0ca'}}>
+    <div
+      className="d-flex justify-content-center align-items-center  vh-100"
+      style={{ backgroundColor: "#7da0ca" }}
+    >
       <div className="bg-white p-3 rounded w-25">
         <h2>
           TeacherSign-up<span className="fs-6 text-danger"> or </span>
@@ -70,10 +78,20 @@ function TeacherSignup() {
           </div>
 
           <div className="mb-3 ">
-                <label htmlFor="institute"><strong>InstituteName</strong></label>
-                <input type='text' placeholder='Enter InstituteName'className='form-control rounded-0' name='institute' onChange={handleInput} />
-                {error.institute && <span className="text-danger">{error.institute}</span>}
-            </div>
+            <label htmlFor="institute">
+              <strong>InstituteName</strong>
+            </label>
+            <input
+              type="text"
+              placeholder="Enter InstituteName"
+              className="form-control rounded-0"
+              name="institute"
+              onChange={handleInput}
+            />
+            {error.institute && (
+              <span className="text-danger">{error.institute}</span>
+            )}
+          </div>
 
           <div className="mb-3 ">
             <label htmlFor="email">

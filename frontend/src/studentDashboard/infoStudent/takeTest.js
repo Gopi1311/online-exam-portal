@@ -107,7 +107,7 @@ const TakeTest = () => {
       updatedMarks += 1;
       setMarks(updatedMarks);
     }
-    
+
     const nextQuestion = getNextQuestion(isCorrect);
     if (nextQuestion) {
       setCurrentQuestion(nextQuestion);
@@ -117,16 +117,19 @@ const TakeTest = () => {
     } else {
       clearInterval(intervalRef.current);
       stopWebcam();
-      submitMarks(updatedMarks,cheatingCount);
+      submitMarks(updatedMarks, cheatingCount);
     }
   }, [marks, selectedOption, currentQuestion, getNextQuestion]);
 
   const submitMarks = async (finalMarks, finalCheatingCount) => {
     try {
-      const res = await axios.post(`http://localhost:8081/marksupdate/${id}`, {
-        marks: finalMarks,
-        cheatingCount: finalCheatingCount
-      });
+      const res = await axios.post(
+        `http://localhost:8081/student/marksupdate/${id}`,
+        {
+          marks: finalMarks,
+          cheatingCount: finalCheatingCount,
+        }
+      );
       console.log("Marks successfully updated: ", res.data);
       navigate("/studenthomedash");
     } catch (err) {
@@ -151,7 +154,7 @@ const TakeTest = () => {
     const fetchQuestions = async () => {
       try {
         const res = await axios.get(
-          `http://localhost:8081/getQuestionStudent/${id}`
+          `http://localhost:8081/student/getQuestionStudent/${id}`
         );
         const fetchedQuestions = {
           easy: res.data.filter((q) => q.level === -1),
@@ -190,14 +193,18 @@ const TakeTest = () => {
 
   const handleCheatingDetected = () => {
     setCheatingCount((prevCount) => prevCount + 1);
-    
   };
-  //console.log("cheating:"+cheatingCount);
 
   return (
     <div>
-      <div className=""style={{position: "absolute",right: "20px",top:'20px'}}>
-        <WebcamDetection ref={webcamRef} onCheatingDetected={handleCheatingDetected} />
+      <div
+        className=""
+        style={{ position: "absolute", right: "20px", top: "20px" }}
+      >
+        <WebcamDetection
+          ref={webcamRef}
+          onCheatingDetected={handleCheatingDetected}
+        />
       </div>
       <div className="container mt-5">
         <div className="row justify-content-center">
@@ -282,20 +289,23 @@ const TakeTest = () => {
                     >
                       {questionNumber === totalQuestions ? "Finish" : "Next"}
                     </button>
-                    
                   </div>
                 </div>
                 <button
-                      className="btn btn-danger btn-lg ms-3"
-                      style={{position: "absolute",right: "30px",bottom: "30px"}}
-                      onClick={() => {
-                        stopWebcam();
-                        clearInterval(intervalRef.current);
-                        navigate("/studenthomedash");
-                      }}
-                    >
-                     EndTest
-                    </button>
+                  className="btn btn-danger btn-lg ms-3"
+                  style={{
+                    position: "absolute",
+                    right: "30px",
+                    bottom: "30px",
+                  }}
+                  onClick={() => {
+                    stopWebcam();
+                    clearInterval(intervalRef.current);
+                    navigate("/studenthomedash");
+                  }}
+                >
+                  EndTest
+                </button>
               </>
             )}
           </div>
